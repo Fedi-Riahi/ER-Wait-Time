@@ -1,23 +1,22 @@
-
-from fastapi  import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing   import Any, Dict
-import sys, os
+from typing import Any, Dict
+import sys, os, uuid, time, joblib
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+from data_loader        import load_raw
+from preprocessing      import clean, prepare, apply_pca
+from evaluate           import compute_metrics
+from model_registry_be  import build_model, MODEL_REGISTRY
+from config             import MLFLOW_TRACKING_URI, EXPERIMENT_NAME, MODELS_DIR
+import mlflow
 
-from data_loader   import load_raw
-from preprocessing import clean, prepare, apply_pca
-from evaluate      import compute_metrics
-from backend.model_registry_be import build_model, MODEL_REGISTRY
-import mlflow, mlflow.sklearn, joblib, uuid
+router = APIRouter()
 
-router    = APIRouter()
-MODELS_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'models')
-os.makedirs(MODELS_DIR, exist_ok=True)
-
-mlflow.set_tracking_uri("sqlite:///mlflow.db")
-mlflow.set_experiment("ER_WaitTime_Prediction")
+mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+mlflow.set_experiment(EXPERIMENT_NAME)
 
 
 class TrainRequest(BaseModel):
@@ -29,44 +28,58 @@ class TrainRequest(BaseModel):
 
 @router.post("/")
 def train(req: TrainRequest):
-    """Train a model from the frontend and log to MLflow"""
+    if req.model not in MODEL_REGISTRY:
+        raise HTTPException(status_code=400, detail=f"Unknown model key: '{req.model}'")
 
-    # Load + preprocess data
-    df                                              = load_raw()
-    df                                              = clean(df)
+    t0 = time.perf_counter()
+
+    # ── Load & preprocess ────────────────────────────────────────────────────
+    df = load_raw()
+    df = clean(df)
     X_train, X_test, y_train, y_test, scaler, feats = prepare(df)
 
-    # Apply PCA if requested
     if req.use_pca:
-        X_train, X_test, pca = apply_pca(X_train, X_test, req.pca_n)
+        X_train, X_test, _ = apply_pca(X_train, X_test, req.pca_n)
 
-    # Build model
+    # ── Train ────────────────────────────────────────────────────────────────
     model = build_model(req.model, req.hyperparams)
+    model.fit(X_train, y_train)
 
-    # Train + evaluate
+    # ── Evaluate ─────────────────────────────────────────────────────────────
+    metrics = compute_metrics(model, X_test, y_test)
+
+    # ── Log to MLflow (params + metrics only — NO log_model; that's what's slow) ──
     with mlflow.start_run(run_name=f"{req.model}_UI"):
         mlflow.log_param("model_type", model.__class__.__name__)
         mlflow.log_param("use_pca",    req.use_pca)
+        mlflow.log_param("n_features", len(feats))
         for k, v in req.hyperparams.items():
             mlflow.log_param(k, v)
-
-        model.fit(X_train, y_train)
-        metrics = compute_metrics(model, X_test, y_test)
-
         mlflow.log_metrics(metrics)
-        mlflow.sklearn.log_model(model, "model")
+        # ✅ We intentionally skip mlflow.sklearn.log_model() here.
+        # That call serialises and uploads the full model artifact to MLflow
+        # storage, which adds 1–3 s per run with no benefit since we already
+        # save the model to disk via joblib below.
 
-    # Save to disk
+    # ── Persist to disk ──────────────────────────────────────────────────────
     path = os.path.join(MODELS_DIR, f"{req.model}_latest.joblib")
-    joblib.dump({"model": model, "scaler": scaler, "feature_names": feats}, path)
+    joblib.dump(
+        {"model": model, "scaler": scaler, "feature_names": feats},
+        path,
+        compress=3,  # slight compression, negligible speed cost
+    )
 
-    exp_id = f"exp_{uuid.uuid4().hex[:6]}"
-    return {"exp_id": exp_id, "model": req.model, **metrics}
+    elapsed = round(time.perf_counter() - t0, 2)
+    return {
+        "exp_id":      f"exp_{uuid.uuid4().hex[:6]}",
+        "model":       req.model,
+        "train_time_s": elapsed,
+        **metrics,
+    }
 
 
 @router.get("/models")
 def list_models():
-    """Return available models for the frontend dropdown"""
     return [
         {
             "key":    k,

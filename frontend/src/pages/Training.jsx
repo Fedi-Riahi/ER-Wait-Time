@@ -3,22 +3,295 @@ import { fetchModels, trainModel } from '../services/api'
 import toast from 'react-hot-toast'
 
 const HYPERPARAMS = {
+  adaboost: [
+    {
+      key:'n_estimators',
+      label:'Estimators',
+      type:'range',
+      min:10,
+      max:500,
+      step:10,
+      default:100
+    },
+    {
+      key:'learning_rate',
+      label:'Learning Rate',
+      type:'range',
+      min:0.01,
+      max:2,
+      step:0.01,
+      default:1.0
+    },
+    {
+      key:'loss',
+      label:'Loss',
+      type:'select',
+      options:['linear','square','exponential'],
+      default:'linear'
+    },
+  ],
+
+  xgboost: [
+    {
+      key:'n_estimators',
+      label:'Trees',
+      type:'range',
+      min:10,
+      max:1000,
+      step:10,
+      default:100
+    },
+    {
+      key:'learning_rate',
+      label:'Learning Rate',
+      type:'range',
+      min:0.01,
+      max:0.5,
+      step:0.01,
+      default:0.1
+    },
+    {
+      key:'max_depth',
+      label:'Max Depth',
+      type:'range',
+      min:1,
+      max:20,
+      step:1,
+      default:6
+    },
+    {
+      key:'subsample',
+      label:'Subsample',
+      type:'range',
+      min:0.5,
+      max:1,
+      step:0.05,
+      default:1
+    },
+    {
+      key:'colsample_bytree',
+      label:'Feature Sample',
+      type:'range',
+      min:0.5,
+      max:1,
+      step:0.05,
+      default:1
+    },
+    {
+      key:'gamma',
+      label:'Gamma',
+      type:'range',
+      min:0,
+      max:10,
+      step:0.1,
+      default:0
+    },
+  ],
+
   random_forest: [
-    { key:'n_estimators', label:'Trees',      type:'range',  min:10,  max:300, step:10,  default:100 },
-    { key:'max_depth',    label:'Max Depth',  type:'range',  min:1,   max:50,  step:1,   default:10  },
+    {
+      key:'n_estimators',
+      label:'Trees',
+      type:'range',
+      min:10,
+      max:1000,
+      step:10,
+      default:100
+    },
+    {
+      key:'max_depth',
+      label:'Max Depth',
+      type:'range',
+      min:1,
+      max:100,
+      step:1,
+      default:10
+    },
+    {
+      key:'min_samples_split',
+      label:'Min Split',
+      type:'range',
+      min:2,
+      max:20,
+      step:1,
+      default:2
+    },
+    {
+      key:'min_samples_leaf',
+      label:'Min Leaf',
+      type:'range',
+      min:1,
+      max:20,
+      step:1,
+      default:1
+    },
+    {
+      key:'max_features',
+      label:'Max Features',
+      type:'select',
+      options:['sqrt','log2'],
+      default:'sqrt'
+    },
+    {
+      key:'bootstrap',
+      label:'Bootstrap',
+      type:'select',
+      options:['true','false'],
+      default:true
+    },
   ],
+
   svr: [
-    { key:'C',      label:'C',      type:'range',  min:0.1, max:10, step:0.1, default:1     },
-    { key:'kernel', label:'Kernel', type:'select', options:['rbf','linear'],   default:'rbf' },
+    {
+      key:'C',
+      label:'C',
+      type:'range',
+      min:0.1,
+      max:100,
+      step:0.1,
+      default:1
+    },
+    {
+      key:'kernel',
+      label:'Kernel',
+      type:'select',
+      options:['rbf','linear','poly','sigmoid'],
+      default:'rbf'
+    },
+    {
+      key:'gamma',
+      label:'Gamma',
+      type:'select',
+      options:['scale','auto'],
+      default:'scale'
+    },
+    {
+      key:'epsilon',
+      label:'Epsilon',
+      type:'range',
+      min:0.01,
+      max:1,
+      step:0.01,
+      default:0.1
+    },
   ],
+
   knn: [
-    { key:'n_neighbors', label:'K Neighbors', type:'range', min:1, max:30, step:1, default:5 },
+    {
+      key:'n_neighbors',
+      label:'Neighbors',
+      type:'range',
+      min:1,
+      max:50,
+      step:1,
+      default:5
+    },
+    {
+      key:'weights',
+      label:'Weights',
+      type:'select',
+      options:['uniform','distance'],
+      default:'uniform'
+    },
+    {
+      key:'metric',
+      label:'Metric',
+      type:'select',
+      options:['euclidean','manhattan','minkowski'],
+      default:'minkowski'
+    },
   ],
+
   linear_reg: [
-    { key:'alpha', label:'Alpha (Ridge)', type:'range', min:0.01, max:10, step:0.01, default:1 },
+    {
+      key:'alpha',
+      label:'Alpha',
+      type:'range',
+      min:0.001,
+      max:100,
+      step:0.001,
+      default:1
+    },
+    {
+      key:'solver',
+      label:'Solver',
+      type:'select',
+      options:[
+        'auto',
+        'svd',
+        'cholesky',
+        'lsqr',
+        'sag',
+        'saga'
+      ],
+      default:'auto'
+    },
   ],
+
   neural_net: [
-    { key:'learning_rate_init', label:'Learning Rate', type:'range', min:0.0001, max:0.1, step:0.0001, default:0.001 },
+    {
+      key:'learning_rate_init',
+      label:'Learning Rate',
+      type:'range',
+      min:0.0001,
+      max:0.1,
+      step:0.0001,
+      default:0.001
+    },
+    {
+      key:'hidden_layer_sizes',
+      label:'Architecture',
+      type:'select',
+      options:[
+        '(64,)',
+        '(128,)',
+        '(128,64)',
+        '(256,128)',
+        '(256,128,64)'
+      ],
+      default:'(128,64)'
+    },
+    {
+      key:'activation',
+      label:'Activation',
+      type:'select',
+      options:['relu','tanh','logistic'],
+      default:'relu'
+    },
+    {
+      key:'solver',
+      label:'Optimizer',
+      type:'select',
+      options:['adam','sgd'],
+      default:'adam'
+    },
+    {
+      key:'batch_size',
+      label:'Batch Size',
+      type:'range',
+      min:16,
+      max:256,
+      step:16,
+      default:32
+    },
+    {
+      key:'max_iter',
+      label:'Epochs',
+      type:'range',
+      min:100,
+      max:1000,
+      step:50,
+      default:300
+    },
+    {
+      key:'alpha',
+      label:'L2 Regularization',
+      type:'range',
+      min:0.00001,
+      max:0.01,
+      step:0.00001,
+      default:0.0001
+    },
   ],
 }
 
@@ -49,7 +322,25 @@ export default function Training() {
 
     const id = toast.loading(`Training ${selected}...`)
     try {
-      const res = await trainModel({ model: selected, hyperparams: params, use_pca: usePCA })
+      const finalParams = { ...params }
+        // Convert tuple string for MLP
+        if (selected === 'neural_net' && finalParams.hidden_layer_sizes) {
+        finalParams.hidden_layer_sizes =
+            JSON.parse(
+            finalParams.hidden_layer_sizes
+                .replace(/\(/g, '[')
+                .replace(/\)/g, ']')
+            )
+        }
+
+        // Convert boolean select
+        finalParams.bootstrap = Boolean(finalParams.bootstrap)
+
+        const res = await trainModel({
+        model: selected,
+        hyperparams: finalParams,
+        use_pca: usePCA
+        })
       setResults(res)
       setProgress(100)
       toast.success('Training complete!', { id })

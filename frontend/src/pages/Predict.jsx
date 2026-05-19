@@ -50,13 +50,19 @@ export default function Predict() {
         {/* Model selector */}
         <div className="mb-4">
           <label className="block text-xs text-gray-400 mb-1">Model</label>
-          <select value={model} onChange={e => setModel(e.target.value)}
-            className="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-sm text-white">
-            <option value="random_forest">Random Forest ⭐ Best</option>
+          <select
+            value={model}
+            onChange={e => setModel(e.target.value)}
+            className="w-full bg-dark-700 border border-dark-600 rounded-lg px-3 py-2 text-sm text-white"
+            >
+            <option value="linear_reg">Linear Regression ⭐ Best</option>
+            <option value="xgboost">XGBoost 🥈</option>
+            <option value="random_forest">Random Forest</option>
             <option value="svr">SVR</option>
             <option value="knn">KNN</option>
-            <option value="linear_reg">Ridge Regression</option>
-          </select>
+            <option value="neural_net">Neural Network</option>
+            <option value="adaboost">AdaBoost</option>
+            </select>
         </div>
 
         <div className="space-y-3">
