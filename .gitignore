@@ -18,7 +18,6 @@ env/
 .env.*
 
 # ── Data files (IMPORTANT for ML) ──────
-data/raw/
 data/processed/
 *.csv
 
