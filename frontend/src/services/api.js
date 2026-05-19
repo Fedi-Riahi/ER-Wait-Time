@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
-const api = axios.create({ baseURL: `${BASE_URL}/api`, timeout: 120000 })
+const api = axios.create({ baseURL: BASE_URL, timeout: 120000 })
 api.interceptors.response.use(r => r.data, err => Promise.reject(err))
 
 export const fetchSummary    = ()  => api.get('/mlflow/summary')
