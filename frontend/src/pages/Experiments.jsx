@@ -3,8 +3,8 @@ import { fetchRuns } from '../services/api'
 import { ChevronDown, ChevronUp, RefreshCw } from 'lucide-react'
 
 export default function Experiments() {
-  const [runs,     setRuns]     = useState([])
-  const [loading,  setLoading]  = useState(true)
+  const [runs, setRuns] = useState([])
+  const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(null)
 
   const load = () => {
@@ -51,10 +51,10 @@ export default function Experiments() {
                 <span className="text-blue-400">R² <b>{r.metrics.r2}</b></span>
               </div>
               <span className={`px-2 py-1 rounded text-xs font-semibold
-                ${r.status==='best' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-500/20 text-gray-400'}`}>
-                {r.status==='best' ? '⭐ Best' : 'Done'}
+                ${r.status === 'best' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-500/20 text-gray-400'}`}>
+                {r.status === 'best' ? '⭐ Best' : 'Done'}
               </span>
-              {expanded===r.id ? <ChevronUp size={14} className="text-gray-500"/> : <ChevronDown size={14} className="text-gray-500"/>}
+              {expanded === r.id ? <ChevronUp size={14} className="text-gray-500"/> : <ChevronDown size={14} className="text-gray-500"/>}
             </div>
 
             {expanded === r.id && (

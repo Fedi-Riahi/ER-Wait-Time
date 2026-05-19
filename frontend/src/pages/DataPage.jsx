@@ -5,7 +5,7 @@ import { Upload } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export default function DataPage() {
-  const [stats,   setStats]   = useState(null)
+  const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -48,10 +48,10 @@ export default function DataPage() {
         <>
           <div className="grid grid-cols-4 gap-4">
             {[
-              { label:'Rows',     value:stats.rows?.toLocaleString(),     color:'text-blue-400'   },
-              { label:'Columns',  value:stats.columns,                    color:'text-purple-400' },
-              { label:'Nulls',    value:stats.null_count?.toLocaleString(),color:stats.null_count > 0 ? 'text-yellow-400' : 'text-emerald-400' },
-              { label:'Target',   value:'wait_time_min',                  color:'text-accent'     },
+              { label:'Rows', value:stats.rows?.toLocaleString(), color:'text-blue-400' },
+              { label:'Columns', value:stats.columns, color:'text-purple-400' },
+              { label:'Nulls', value:stats.null_count?.toLocaleString(), color:stats.null_count > 0 ? 'text-yellow-400' : 'text-emerald-400' },
+              { label:'Target', value:'wait_time_min', color:'text-accent' },
             ].map(s => (
               <div key={s.label} className="bg-dark-800 border border-dark-600 rounded-xl p-4 text-center">
                 <div className="text-xs text-gray-500 mb-1">{s.label}</div>

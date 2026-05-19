@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 from data_loader        import load_raw
 from preprocessing      import clean, prepare, apply_pca
 from evaluate           import compute_metrics
-from model_registry_be  import build_model, MODEL_REGISTRY
+from model_registry_be  import build_model, MODEL_REGISTRY, get_hyperparams
 from config             import MLFLOW_TRACKING_URI, EXPERIMENT_NAME, MODELS_DIR
 import mlflow
 
@@ -82,10 +82,11 @@ def train(req: TrainRequest):
 def list_models():
     return [
         {
-            "key":    k,
-            "name":   v["name"],
-            "family": v["family"],
-            "desc":   v["description"],
+            "key":        k,
+            "name":       v["name"],
+            "family":     v["family"],
+            "desc":       v["description"],
+            "hyperparams": get_hyperparams(k),   # ← derived, never hardcoded
         }
         for k, v in MODEL_REGISTRY.items()
     ]

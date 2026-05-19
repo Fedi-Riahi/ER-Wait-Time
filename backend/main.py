@@ -23,7 +23,6 @@ app.include_router(data.router,        prefix="/data",        tags=["Data"])
 app.include_router(predict.router,     prefix="/predict",     tags=["Predict"])
 app.include_router(mlflow_runs.router, prefix="/mlflow",      tags=["MLflow"])
 
-
 @app.get("/health")
 def health():
     return {"status": "ok"}
